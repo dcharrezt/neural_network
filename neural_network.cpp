@@ -2,6 +2,8 @@
 #include <cmath>
 #include <ctime>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -9,12 +11,36 @@ using namespace std;
 #define n_layers 2
 #define n_classes 3
 
-#define alpha 0.5
+#define alpha 0.05
 
-typedef float FF;
+typedef double FF;
 typedef int II;
 typedef vector<vector<FF>> matrix;
 typedef vector<FF> vec;
+
+std::vector<std::vector<FF> >     data;
+
+void read_file(){
+    std::ifstream          file("dataset/aprenderD.dat");
+    std::string   line;
+    while(std::getline(file, line))
+    {
+        std::vector<FF>   lineData;
+        std::stringstream  lineStream(line);
+        FF value;
+        while(lineStream >> value)
+        {
+            lineData.push_back(value);
+        }
+        data.push_back(lineData);
+    }
+    // for (size_t i = 0; i < data.size(); i++) {
+    //     for (size_t j = 0; j < data[i].size(); j++) {
+    //         cout << data[i][j] << ' ';
+    //     }
+    //     cout << endl;
+    // }
+}
 
 void print_matrix(matrix ms){
     cout << "[ " << ms.size() << " x " << ms[0].size() << " ]" <<endl;
@@ -73,25 +99,18 @@ vec net(vec input, matrix weights){
     return ms;
 }
 
-void modify_weigths(vec out_desired, vec output, matrix output_layer, 
-                    vec out_h1, matrix hidden_layer, vec inputs){
+void modify_weigths(vec out_desired, vec output, matrix &output_layer, 
+                    vec out_h1, matrix &hidden_layer, vec inputs){
 
+	
     vec deltas;
     vec deltas_h1;
     FF tmp;
     
     for(unsigned i = 0; i<out_desired.size(); ++i){
-        deltas.push_back( -(out_desired[i]-output[i])*(1-output[i])*output[i]);
+        deltas.push_back( -1.*(out_desired[i]-output[i])*(1-output[i])*output[i] );
     }
     
-    for(unsigned i = 0; i<output_layer.size(); ++i){
-        for(unsigned j=0; j<output_layer[0].size(); ++j){
-            output_layer[i][j] -= alpha * ( deltas[i] * out_h1[j] );
-        }
-    }
-    
-	print_matrix(output_layer);
-	
     for(unsigned i = 0; i<output_layer.size(); ++i){
     	tmp = 0.0;
         for(unsigned j=0; j<output_layer[0].size(); ++j){
@@ -100,45 +119,68 @@ void modify_weigths(vec out_desired, vec output, matrix output_layer,
         tmp *= out_h1[i]*(1-out_h1[i]);
         deltas_h1.push_back(tmp);
     }
+    
+    for(unsigned i = 0; i<output_layer.size(); ++i){
+        for(unsigned j=0; j<output_layer[0].size(); ++j){
+            output_layer[i][j] -= alpha * ( deltas[j] * out_h1[j] );
+        }
+    }
 	
 	for(unsigned i = 0; i<hidden_layer.size(); ++i){
         for(unsigned j=0; j<hidden_layer[0].size(); ++j){
-             hidden_layer[i][j] -= alpha * deltas_h1[i]*inputs[j];
+             hidden_layer[i][j] -= alpha * deltas_h1[j] * inputs[j];
         }
         deltas_h1.push_back(tmp);
     }
     
-    print_matrix(hidden_layer);
-    
+}
+
+FF get_error(vec desired, vec output){
+    FF tmp = 0.;
+    for (unsigned i = 0; i < desired.size(); i++) {
+        tmp += 0.5 * pow( desired[i] - output[i], 2);
+    }
+    return tmp;
 }
 
 int main(){
     
     srand(time(NULL));
-    vec i = {5.1,3.5,1.4,0.2};
+    vec i = {0.7142857142857144,0.5789473684210527,0.7777777777777777,0.25};
     vec o = {1,0,0};
 
     matrix hidden_1 ( create_layer(5,8));    
-    print_matrix( hidden_1 );
-
+//    print_matrix( hidden_1 );
     matrix output ( create_layer(9,3) );
-    print_matrix( output );
-    
+//    print_matrix( output );
     vec net_h1 ( net(i, hidden_1) );
-    print_vec( net_h1 );
-    
+//    print_vec( net_h1 );    
     vec out_h1 ( sigmoid(net_h1) ) ;
-    print_vec( out_h1 );
-    
-
-    
+//    print_vec( out_h1 );    
     vec net_out ( net(out_h1, output) );
-    print_vec( net_out );
-    
+//    print_vec( net_out );    
     vec out ( sigmoid(net_out) ) ;
-    print_vec( out );
-    
+//    print_vec( out );   
     modify_weigths(o, out, output, out_h1, hidden_1, i);
+
+	FF er = get_error(o, out);
+	cout << "ERROR  " << er  << endl;
+	
+	FF c = 0;
+	while(er > 0.01 || c < 10000){
+	
+		vec net_h1 ( net(i, hidden_1) );
+		vec out_h1 ( sigmoid(net_h1) ) ;
+		vec net_out ( net(out_h1, output) );
+		vec out ( sigmoid(net_out) ) ;
+
+		modify_weigths(o, out, output, out_h1, hidden_1, i);
+		
+		c++;
+		er = get_error(o, out);
+		cout << "ERROR  " << er << " iter "<< c << endl;
+		print_vec(out);
+	}
 
     return 0;
 }
