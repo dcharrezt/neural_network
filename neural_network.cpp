@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <string> 
 
 using namespace std;
 
@@ -17,16 +18,96 @@ typedef double FF;
 typedef int II;
 typedef vector<vector<FF>> matrix;
 typedef vector<FF> vec;
+typedef vector<matrix> dataset;
+typedef vector<string> classes;
 
-std::vector<std::vector<FF> >     data;
+matrix read_file(string file_name);
+void print_matrix(matrix ms);
+void print_vec(vec ms);
+FF sigmoid_function(FF x);
+vec sigmoid(vec ms);
+matrix create_layer(II n_inputs, II n_neurons);
+vec net(vec input, matrix weights);
+void modify_weigths(vec out_desired, vec output, matrix &output_layer, 
+                    vec out_h1, matrix &hidden_layer, vec inputs);
+FF get_error(vec desired, vec output);
+void train_network();
+dataset get_training_dataset( classes names );
+dataset get_test_dataset( classes names );
 
-void read_file(){
-    std::ifstream          file("dataset/aprenderD.dat");
-    std::string   line;
-    while(std::getline(file, line))
+int main(){
+    
+    srand(time(NULL));
+    
+    classes c = {"Setosa","Versicolour","Virginica"};
+    dataset data( get_training_dataset( c ) );
+    
+    print_matrix( data[0] );
+
+    
+//    vec i = {0.7142857142857144,0.5789473684210527,0.7777777777777777,0.25};
+//    vec o = {1,0,0};
+
+//    matrix hidden_1 ( create_layer(5,8));    
+////    print_matrix( hidden_1 );
+//    matrix output ( create_layer(9,3) );
+////    print_matrix( output );
+//    vec net_h1 ( net(i, hidden_1) );
+////    print_vec( net_h1 );    
+//    vec out_h1 ( sigmoid(net_h1) ) ;
+////    print_vec( out_h1 );    
+//    vec net_out ( net(out_h1, output) );
+////    print_vec( net_out );    
+//    vec out ( sigmoid(net_out) ) ;
+////    print_vec( out );   
+//    modify_weigths(o, out, output, out_h1, hidden_1, i);
+
+//	FF er = get_error(o, out);
+//	cout << "ERROR  " << er  << endl;
+//	
+//	FF c = 0;
+//	while(er > 0.01 || c < 10000){
+//	
+//		vec net_h1 ( net(i, hidden_1) );
+//		vec out_h1 ( sigmoid(net_h1) ) ;
+//		vec net_out ( net(out_h1, output) );
+//		vec out ( sigmoid(net_out) ) ;
+
+//		modify_weigths(o, out, output, out_h1, hidden_1, i);
+//		
+//		c++;
+//		er = get_error(o, out);
+//		cout << "ERROR  " << er << " iter "<< c << endl;
+//		print_vec(out);
+//	}
+
+    return 0;
+}
+
+dataset get_training_dataset( classes names ){
+	dataset data;
+	for(unsigned i=0; i<names.size(); i++){
+		data.push_back(read_file(names[i]+"_"+to_string(i)+"_training"));
+	}
+	return data;
+}
+
+dataset get_test_dataset( classes names ){
+	dataset data;
+	for(unsigned i=0; i<names.size(); i++){
+		data.push_back(read_file(names[i]+"_"+to_string(i)+"_test"));
+	}
+	return data;
+}
+
+matrix read_file(string file_name){
+	matrix	data;
+    ifstream	file("dataset/files/"+file_name);
+    string   line;
+    while( getline(file, line) )
     {
-        std::vector<FF>   lineData;
-        std::stringstream  lineStream(line);
+        vec   lineData;
+        stringstream  lineStream(line);
         FF value;
         while(lineStream >> value)
         {
@@ -34,12 +115,7 @@ void read_file(){
         }
         data.push_back(lineData);
     }
-    // for (size_t i = 0; i < data.size(); i++) {
-    //     for (size_t j = 0; j < data[i].size(); j++) {
-    //         cout << data[i][j] << ' ';
-    //     }
-    //     cout << endl;
-    // }
+    return data;
 }
 
 void print_matrix(matrix ms){
@@ -143,44 +219,7 @@ FF get_error(vec desired, vec output){
     return tmp;
 }
 
-int main(){
-    
-    srand(time(NULL));
-    vec i = {0.7142857142857144,0.5789473684210527,0.7777777777777777,0.25};
-    vec o = {1,0,0};
+void train_network(){
 
-    matrix hidden_1 ( create_layer(5,8));    
-//    print_matrix( hidden_1 );
-    matrix output ( create_layer(9,3) );
-//    print_matrix( output );
-    vec net_h1 ( net(i, hidden_1) );
-//    print_vec( net_h1 );    
-    vec out_h1 ( sigmoid(net_h1) ) ;
-//    print_vec( out_h1 );    
-    vec net_out ( net(out_h1, output) );
-//    print_vec( net_out );    
-    vec out ( sigmoid(net_out) ) ;
-//    print_vec( out );   
-    modify_weigths(o, out, output, out_h1, hidden_1, i);
-
-	FF er = get_error(o, out);
-	cout << "ERROR  " << er  << endl;
-	
-	FF c = 0;
-	while(er > 0.01 || c < 10000){
-	
-		vec net_h1 ( net(i, hidden_1) );
-		vec out_h1 ( sigmoid(net_h1) ) ;
-		vec net_out ( net(out_h1, output) );
-		vec out ( sigmoid(net_out) ) ;
-
-		modify_weigths(o, out, output, out_h1, hidden_1, i);
-		
-		c++;
-		er = get_error(o, out);
-		cout << "ERROR  " << er << " iter "<< c << endl;
-		print_vec(out);
-	}
-
-    return 0;
 }
+

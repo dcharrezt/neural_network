@@ -10,7 +10,6 @@ names = ['Sepal length', 'Sepal width', 'Petal length', \
         
 origins = ['Setosa','Versicolour','Virginica']
 
-
 def normalize(x):
     max_ = max(x)
     min_ = min(x)
