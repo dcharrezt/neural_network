@@ -19,9 +19,11 @@ FF sigmoid_function(FF x){
 }
 
 matrix sigmoid(matrix ms){
-    for(unsigned i; i<ms.size(); ++i){
-        for(unsigned j; j<ms[0].size(); ++j){
-            ms[i][j] = sigmoid_function(ms[i][j]);
+    for(auto i : ms){
+        for(auto j : i){
+            cout << j << ' ';
+            j = sigmoid_function(j);
+            cout << j << ' ';
         }
     }
     return ms;
